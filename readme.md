@@ -1,8 +1,8 @@
 ## Controls
 
-Left  click - Left   Silo
-Both  click - Middle Silo
-Right click - Right  Silo
+- Left  click - Left   Silo
+- Both  click - Middle Silo
+- Right click - Right  Silo
 
 
 ## Credits
