@@ -4,6 +4,12 @@
 - Both  click - Middle Silo
 - Right click - Right  Silo
 
+## Screenshots
+
+<p align="center">
+  <img src="img/mc.mp4">
+</p>
+
 
 ## Credits
 
