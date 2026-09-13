@@ -1,0 +1,110 @@
+<package>
+  <job id="Sfx">
+    <script language="JScript">
+      var args = WScript.Arguments;
+      var ctrl = args(0);
+
+      var vol = parseInt(args(1), 10);
+      if (isNaN(vol)) vol = 100;
+      if (vol < 0)    vol = 0;
+      if (vol > 100)  vol = 100;
+
+      var stopPath = args(2);
+      var fso = new ActiveXObject("Scripting.FileSystemObject");
+
+      var players = {};
+      var names   = [];
+      for (var i = 3; i < args.length; i++) {
+        var eq = args(i).indexOf("=");
+        if (eq < 1) continue;
+        var name = args(i).substring(0, eq);
+        var path = args(i).substring(eq + 1);
+        if (!fso.FileExists(path)) continue;
+
+        var pl = new ActiveXObject("WMPlayer.OCX.7");
+        pl.settings.autoStart = false;
+        pl.settings.setMode("loop", false);
+        pl.settings.volume = vol;
+        pl.URL = path;
+        players[name] = pl;
+
+        if (name !== "preview") names.push(name);
+      }
+
+      function setVolume(v) {
+        if (isNaN(v)) return;
+        if (v < 0)   v = 0;
+        if (v > 100) v = 100;
+        vol = v;
+        for (var k = 0; k < names.length; k++) {
+          try { players[names[k]].settings.volume = vol; } catch (e) {}
+        }
+      }
+
+      WScript.Sleep(400);
+
+      var running = true;
+      var missing = 0;
+      while (running) {
+
+        if (!fso.FolderExists(ctrl)) {
+          if (++missing > 60) break;
+        } else missing = 0;
+
+        if (fso.FileExists(stopPath)) {
+          try { fso.DeleteFile(stopPath); } catch (e) {}
+          break;
+        }
+
+        var volFile = ctrl + "\\_vol";
+        if (fso.FileExists(volFile)) {
+          try {
+            var fh = fso.OpenTextFile(volFile, 1);
+            var line = fh.AtEndOfStream ? "" : fh.ReadLine();
+            fh.Close();
+            fso.DeleteFile(volFile);
+            setVolume(parseInt(line, 10));
+          } catch (e) {}
+        }
+
+        var pvFile = ctrl + "\\preview";
+        if (fso.FileExists(pvFile) && players["preview"]) {
+          var pv = -1;
+          try {
+            var pfh = fso.OpenTextFile(pvFile, 1);
+            pv = pfh.AtEndOfStream ? -1 : parseInt(pfh.ReadLine(), 10);
+            pfh.Close();
+            fso.DeleteFile(pvFile);
+          } catch (e) { pv = -1; }
+          if (!isNaN(pv) && pv >= 0) {
+            if (pv > 100) pv = 100;
+            try {
+              players["preview"].settings.volume = pv;
+              players["preview"].controls.currentPosition = 0;
+              players["preview"].controls.play();
+            } catch (e) {}
+          }
+        }
+
+        for (var n = 0; n < names.length; n++) {
+          var flag = ctrl + "\\" + names[n];
+          if (!fso.FileExists(flag)) continue;
+
+          try { fso.DeleteFile(flag); } catch (e) { continue; }
+
+          try {
+            var pl = players[names[n]];
+            pl.controls.currentPosition = 0;
+            pl.controls.play();
+          } catch (e) {}
+        }
+
+        WScript.Sleep(8);
+      }
+
+      for (var n = 0; n < names.length; n++) {
+        try { players[names[n]].controls.stop(); } catch (e) {}
+      }
+    </script>
+  </job>
+</package>
