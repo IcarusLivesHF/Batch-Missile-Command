@@ -7,7 +7,7 @@
 ## Screenshots
 
 <p align="center">
-  <img src="img/mc.mp4">
+  <img src="img/mc.gif">
 </p>
 
 
